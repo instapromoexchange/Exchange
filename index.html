@@ -266,8 +266,8 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="profile-info">
-                    <h2 id="profileUserName"></h2>
-                    <p id="profileInstagram"></p>
+                    <h2 id="profileUserName">Welcome</h2>
+                    <p id="profileInstagram">@instapromo_Exchange</p>
                 </div>
             </div>
 
@@ -848,11 +848,11 @@
           if (contentType === 'specialReel') {
             amount = 25;
           } else if (contentType === 'story') {
-            amount = 500;
+            amount = 10;
           } else if (contentType === 'reels') {
-            amount = 800;
+            amount = 20;
           } else {
-            amount = 1200;
+            amount = 20;
           }
 
           const newDoc = await addDoc(collection(db, "submissions"), {
