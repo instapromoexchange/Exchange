@@ -112,136 +112,222 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Navigation
-    function showSection(id) {
-      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; }
+    header { background:#222; color:#fff; padding:10px; text-align:center; font-size:20px; }
+    nav { background:#444; padding:10px; display:flex; gap:15px; }
+    nav button { background:#666; border:none; color:#fff; padding:8px 12px; cursor:pointer; border-radius:5px; }
+    nav button:hover { background:#888; }
+    section { display:none; padding:20px; }
+    section.active { display:block; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    table, th, td { border:1px solid #ccc; }
+    th, td { padding:8px; text-align:left; }
+    .btn { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+    .btn.approve { background:#28a745; color:white; }
+    .btn.reject { background:#dc3545; color:white; }
+    .btn.read { background:#007bff; color:white; }
+    .btn.delete { background:#6c757d; color:white; }
+    .badge { padding:3px 6px; border-radius:4px; color:white; font-size:12px; }
+    .badge.pending { background:orange; }
+    .badge.approved { background:green; }
+    .badge.rejected { background:red; }
+    .badge.completed { background:blue; }
+    .badge.requested { background:purple; }
+  </style>
+</head>
+<body>
+  <header>🔥 Admin Panel</header>
+  <nav>
+    <button onclick="showSection('users')">Users</button>
+    <button onclick="showSection('brands')">Brand Requests</button>
+    <button onclick="showSection('messages')">Messages</button>
+    <button onclick="showSection('submissions')">Submissions</button>
+    <button onclick="showSection('withdrawals')">Withdrawals</button>
+  </nav>
+
+  <!-- Users -->
+  <section id="users" class="active">
+    <h2>Users</h2>
+    <table>
+      <thead><tr><th>UserID</th><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Brand Promotion Requests -->
+  <section id="brands">
+    <h2>Brand Promotion Requests</h2>
+    <table>
+      <thead><tr><th>Company</th><th>Person</th><th>Email</th><th>Phone</th><th>Details</th><th>Date</th></tr></thead>
+      <tbody id="brandsBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Messages -->
+  <section id="messages">
+    <h2>Messages</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Company</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="msgBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Submissions -->
+  <section id="submissions">
+    <h2>Submissions</h2>
+    <table>
+      <thead><tr><th>Type</th><th>Link</th><th>Earnings</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="subsBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Withdrawals -->
+  <section id="withdrawals">
+    <h2>Withdrawals</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Method</th><th>Details</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="wdBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    // ✅ Your Firebase Config (replace with yours)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://exchange-a725e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Users
+    onValue(ref(db, "users"), snap => {
+      let html="";
+      snap.forEach(ch=>{
+        const v=ch.val();
+        html+=`<tr>
+          <td>${ch.key}</td>
+          <td>${v.name || "-"}</td>
+          <td>${v.email || "-"}</td>
+          <td>${v.phone || "-"}</td>
+        </tr>`;
+      });
+      document.getElementById("usersBody").innerHTML=html;
+    });
+
+    // Brand Promotion Requests
+    onValue(ref(db,"brandPromotionRequests"),snap=>{
+      let html="";
+      snap.forEach(uid=>{
+        uid.forEach(req=>{
+          const v=req.val();
+          html+=`<tr>
+            <td>${v.company}</td>
+            <td>${v.person}</td>
+            <td>${v.email}</td>
+            <td>${v.phone}</td>
+            <td>${v.details}</td>
+            <td>${new Date(v.createdAt).toLocaleString()}</td>
+          </tr>`;
+        });
+      });
+      document.getElementById("brandsBody").innerHTML=html;
+    });
+
+    // Messages
+    onValue(ref(db,"contactMessages"),snap=>{
+      let html="";
+      snap.forEach(ch=>{
+        const v=ch.val();
+        html+=`<tr>
+          <td>${v.name}</td>
+          <td>${v.email}</td>
+          <td>${v.message}</td>
+          <td>${v.company}</td>
+          <td><span class="badge ${v.read ? 'completed':'pending'}">${v.read?"Read":"Unread"}</span></td>
+          <td>
+            <button class="btn read" onclick="markRead('${ch.key}')">Mark Read</button>
+            <button class="btn delete" onclick="delMsg('${ch.key}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+      document.getElementById("msgBody").innerHTML=html;
+    });
+
+    // Submissions
+    onValue(ref(db,"submissions"),snap=>{
+      let html="";
+      snap.forEach(uid=>{
+        uid.forEach(sub=>{
+          const v=sub.val();
+          html+=`<tr>
+            <td>${v.type}</td>
+            <td><a href="${v.link}" target="_blank">Open</a></td>
+            <td>${v.earnings}</td>
+            <td><span class="badge ${v.status}">${v.status}</span></td>
+            <td>${new Date(v.createdAt).toLocaleString()}</td>
+            <td>
+              <button class="btn approve" onclick="updateSub('${uid.key}','${sub.key}','approved')">Approve</button>
+              <button class="btn reject" onclick="updateSub('${uid.key}','${sub.key}','rejected')">Reject</button>
+            </td>
+          </tr>`;
+        });
+      });
+      document.getElementById("subsBody").innerHTML=html;
+    });
+
+    // Withdrawals
+    onValue(ref(db,"withdrawals"),snap=>{
+      let html="";
+      snap.forEach(uid=>{
+        uid.forEach(wd=>{
+          const v=wd.val();
+          let details=v.method==="upi" ? v.upiId : v.account+" / "+v.ifsc;
+          html+=`<tr>
+            <td>${v.name}</td>
+            <td>${v.method}</td>
+            <td>${details}</td>
+            <td>${v.amount}</td>
+            <td><span class="badge ${v.status}">${v.status}</span></td>
+            <td>${new Date(v.createdAt).toLocaleString()}</td>
+            <td>
+              <button class="btn approve" onclick="updateWd('${uid.key}','${wd.key}','approved')">Approve</button>
+              <button class="btn reject" onclick="updateWd('${uid.key}','${wd.key}','rejected')">Reject</button>
+              <button class="btn read" onclick="updateWd('${uid.key}','${wd.key}','completed')">Mark Paid</button>
+            </td>
+          </tr>`;
+        });
+      });
+      document.getElementById("wdBody").innerHTML=html;
+    });
+
+    // Functions
+    window.markRead=(id)=>update(ref(db,"contactMessages/"+id),{read:true,readAt:Date.now()});
+    window.delMsg=(id)=>remove(ref(db,"contactMessages/"+id));
+    window.updateSub=(uid,id,status)=>update(ref(db,"submissions/"+uid+"/"+id),{status:status,updatedAt:Date.now()});
+    window.updateWd=(uid,id,status)=>update(ref(db,"withdrawals/"+uid+"/"+id),{status:status,updatedAt:Date.now()});
+
+    // Show Sections
+    window.showSection=(id)=>{
+      document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
       document.getElementById(id).classList.add("active");
     }
-
-    // Load Users
-    onValue(ref(db, "users"), snapshot => {
-      const table = document.getElementById("usersTable");
-      table.innerHTML = "";
-      snapshot.forEach(child => {
-        const u = child.val();
-        table.innerHTML += `
-          <tr>
-            <td>${child.key}</td>
-            <td>${u.fullName || "-"}</td>
-            <td>${u.email || "-"}</td>
-            <td>${u.phone || "-"}</td>
-            <td>${u.followers || 0}</td>
-            <td>${u.totalEarnings || 0}</td>
-            <td>${u.availableBalance || 0}</td>
-          </tr>`;
-      });
-    });
-
-    // Load Submissions
-    onValue(ref(db, "submissions"), snapshot => {
-      const table = document.getElementById("submissionsTable");
-      table.innerHTML = "";
-      snapshot.forEach(child => {
-        const s = child.val();
-        table.innerHTML += `
-          <tr>
-            <td>${child.key}</td>
-            <td>${s.userId}</td>
-            <td>${s.type}</td>
-            <td><a href="${s.link}" target="_blank">View</a></td>
-            <td><span class="status ${s.status}">${s.status}</span></td>
-            <td class="actions">
-              <button class="approve" onclick="updateStatus('submissions','${child.key}','approved')">Approve</button>
-              <button class="reject" onclick="updateStatus('submissions','${child.key}','rejected')">Reject</button>
-            </td>
-          </tr>`;
-      });
-    });
-
-    // Load Withdrawals
-    onValue(ref(db, "withdrawals"), snapshot => {
-      const table = document.getElementById("withdrawalsTable");
-      table.innerHTML = "";
-      snapshot.forEach(child => {
-        const w = child.val();
-        // Get user name from users table if exists
-        onValue(ref(db, `users/${w.userId}`), userSnap => {
-          const user = userSnap.val() || {};
-          table.innerHTML += `
-            <tr>
-              <td>${child.key}</td>
-              <td>${user.fullName || w.userId}</td>
-              <td>${w.method}</td>
-              <td>
-                ${w.method === 'UPI' ? `UPI Name: ${w.upiName || "-"}<br>UPI ID: ${w.upiId || "-"}` :
-                `Bank: ${w.bankName || "-"}<br>Account: ${w.accountNumber || "-"}<br>IFSC: ${w.ifsc || "-"}<br>Phone: ${w.phone || "-"}`}
-              </td>
-              <td>${w.amount}</td>
-              <td><span class="status ${w.status}">${w.status}</span></td>
-              <td class="actions">
-                <button class="approve" onclick="updateStatus('withdrawals','${child.key}','approved')">Approve</button>
-                <button class="reject" onclick="updateStatus('withdrawals','${child.key}','rejected')">Reject</button>
-                <button class="mark" onclick="updateStatus('withdrawals','${child.key}','paid')">Mark Paid</button>
-              </td>
-            </tr>`;
-        }, { onlyOnce: true });
-      });
-    });
-
-    // Load Brand Promotion Requests
-    onValue(ref(db, "brandPromotionRequests"), snapshot => {
-      const table = document.getElementById("brandsTable");
-      table.innerHTML = "";
-      snapshot.forEach(child => {
-        const b = child.val();
-        table.innerHTML += `
-          <tr>
-            <td>${child.key}</td>
-            <td>${b.name}</td>
-            <td>${b.email}</td>
-            <td>${b.followers || "-"}</td>
-            <td><span class="status ${b.status || 'pending'}">${b.status || "pending"}</span></td>
-          </tr>`;
-      });
-    });
-
-    // Load Messages
-    onValue(ref(db, "contactMessages"), snapshot => {
-      const table = document.getElementById("messagesTable");
-      table.innerHTML = "";
-      snapshot.forEach(child => {
-        const m = child.val();
-        table.innerHTML += `
-          <tr>
-            <td>${child.key}</td>
-            <td>${m.name}</td>
-            <td>${m.email}</td>
-            <td>${m.company || "-"}</td>
-            <td>${m.message}</td>
-            <td><span class="status ${m.read ? 'approved' : 'pending'}">${m.read ? "Read" : "Unread"}</span></td>
-            <td class="actions">
-              <button class="mark" onclick="updateStatus('contactMessages','${child.key}','read',true)">Mark Read</button>
-              <button class="delete" onclick="deleteItem('contactMessages','${child.key}')">Delete</button>
-            </td>
-          </tr>`;
-      });
-    });
-
-    // Update status function
-    window.updateStatus = function(path, id, status, isMessage = false) {
-      const updates = {};
-      if (isMessage) {
-        updates[`/${path}/${id}/read`] = true;
-      } else {
-        updates[`/${path}/${id}/status`] = status;
-      }
-      update(ref(db), updates).catch(err => console.error(err));
-    };
-
-    // Delete item
-    window.deleteItem = function(path, id) {
-      remove(ref(db, `${path}/${id}`)).catch(err => console.error(err));
-    };
   </script>
 </body>
 </html>
