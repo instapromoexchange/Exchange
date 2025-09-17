@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Instapromo Exchange — Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    :root{--primary:#4361ee;--secondary:#3a0ca3;--accent:#f72585;--light:#f8f9fa;--dark:#111827;--danger:#dc3545;--success:#28a745;--warning:#ffc107}
+    body{background:#f6f8ff;color:var(--dark);min-height:100vh;line-height:1.6}
+    .container{width:100%;max-width:1400px;margin:0 auto;padding:0 16px}
+    header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+    .header-content{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+    .logo{display:flex;align-items:center;gap:10px;cursor:pointer;}
+    .logo h1{font-size:1.3rem}
+    nav ul{list-style:none;display:flex;gap:14px;align-items:center}
+    nav a{color:#fff;text-decoration:none;padding:6px 10px;border-radius:8px;font-weight:600}
+    nav a:hover{background:rgba(255,255,255,.18)}
+    .admin-login{max-width:400px;margin:100px auto;padding:20px;background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.08)}
+    .admin-login h2{text-align:center;margin-bottom:20px;color:var(--primary)}
+    .fg{margin-bottom:12px; position: relative;}
+    .fg label{display:block;font-weight:700;margin-bottom:6px}
+    .fc{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
+    .fc:focus{outline:none;box-shadow:0 0 0 3px rgba(67,97,238,.18)}
+    .btn{display:inline-block;padding:11px 20px;background:var(--accent);color:#fff;border-radius:999px;text-decoration:none;font-weight:800;cursor:pointer;border:0}
+    .btn:hover{filter:brightness(.95);transform:translateY(-1px)}
+    .btn-danger{background:var(--danger)}
+    .btn-success{background:var(--success)}
+    .btn-warning{background:var(--warning);color:#000}
+    .password-container{position: relative;display: flex;align-items: center;}
+    .password-toggle{position: absolute;right: 12px;cursor: pointer;color: #6b7280;transition: all 0.3s ease;background: none;border: none;padding: 4px;border-radius: 50%;display: flex;align-items: center;justify-content: center;}
+    .password-toggle:hover{color: var(--primary);background-color: rgba(67, 97, 238, 0.1);}
+    .password-toggle:active{transform: scale(0.95);}
+    .password-toggle i{font-size: 1.1rem;transition: transform 0.3s ease;}
+    .password-toggle.active i{transform: rotate(10deg);}
+    .admin-dashboard{display:none;padding:20px 0}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px}
+    .stat{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+    .stat i{font-size:1.8rem;color:var(--primary);margin-bottom:6px}
+    .section-title{text-align:center;margin-bottom:26px}
+    .section-title h2{color:var(--primary);margin-bottom:8px}
+    .card{background:#fff;border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.08);overflow:hidden;margin-bottom:20px}
+    .card-header{padding:14px 16px;background:var(--primary);color:#fff;display:flex;justify-content:space-between;align-items:center}
+    .card-body{padding:16px}
+    table{width:100%;border-collapse:collapse}
+    th, td{padding:12px;text-align:left;border-bottom:1px solid #e5e7eb}
+    th{background:#f3f4f6;font-weight:700}
+    tr:hover{background:#f9fafb}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb;margin-bottom:12px}
+    .tab{padding:8px 12px;background:#f3f4f6;border-radius:8px 8px 0 0;cursor:pointer;font-weight:700}
+    .tab.active{background:#fff;border:1px solid #e5e7eb;border-bottom:0;color:var(--primary)}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .status{display:none;margin:0 auto 14px;max-width:520px;padding:12px 14px;border-radius:10px;font-weight:700}
+    .status.show{display:block}
+    .status.ok{background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);color:#065f46}
+    .status.err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#7f1d1d}
+    .badge{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge-success{background:rgba(16,185,129,.14);color:#065f46}
+    .badge-warning{background:rgba(245,158,11,.14);color:#854d0e}
+    .badge-danger{background:rgba(239,68,68,.12);color:#7f1d1d}
+    .badge-info{background:rgba(59,130,246,.14);color:#1e40af}
+    .action-btn{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:6px;cursor:pointer;border:none;font-weight:600;margin-right:5px}
+    .action-btn i{margin-right:4px}
+    .btn-approve{background:var(--success);color:#fff}
+    .btn-reject{background:var(--danger);color:#fff}
+    .btn-view{background:var(--primary);color:#fff}
+    .btn-edit{background:var(--warning);color:#000}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .modal-content{background:#fff;border-radius:14px;padding:20px;width:90%;max-width:600px;max-height:80vh;overflow:auto}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #e5e7eb}
+    .modal-close{background:none;border:none;font-size:24px;cursor:pointer}
+    .search-container{margin-bottom:16px;display:flex;gap:10px}
+    .search-container input{flex:1}
+    .pagination{display:flex;justify-content:center;margin-top:20px;gap:8px}
+    .pagination button{padding:8px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer}
+    .pagination button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .pagination button:hover:not(.active){background:#f3f4f6}
+    .method-details {background: #f9fafb;padding: 10px;border-radius: 8px;margin-top: 5px;font-size: 0.9rem;}
+    .method-details p {margin: 4px 0;}
+    @media (max-width:768px){.stats{grid-template-columns:1fr 1fr}.card-header{flex-direction:column;align-items:flex-start;gap:10px}}
+    @media (max-width:576px){.stats{grid-template-columns:1fr}.admin-login{margin:50px auto;padding:15px}}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container header-content">
+      <div class="logo">
+        <i class="fa-solid fa-exchange-alt"></i><h1>Instapromo Exchange Admin</h1>
+      </div>
+      <nav>
+        <ul id="nav">
+          <li id="nav-logout" style="display:none"><a href="#" id="logout">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Toast -->
+  <div id="status" class="status"></div>
+
+  <!-- Admin Login -->
+  <div id="admin-login" class="admin-login">
+    <h2><i class="fa-solid fa-lock"></i> Admin Login</h2>
+    <div class="fg">
+      <label>Email</label>
+      <input id="admin-email" type="email" class="fc" placeholder="admin@example.com" value="rudrchauhan877@gmail.com">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <div class="password-container">
+        <input id="admin-pass" type="password" class="fc" placeholder="******">
+        <button type="button" class="password-toggle" id="admin-pass-toggle">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </div>
+    <button class="btn" style="width:100%" id="btn-admin-login">Login</button>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="admin-dashboard" class="admin-dashboard container">
+    <div class="section-title">
+      <h2>Admin Dashboard</h2>
+      <p>Manage users, submissions, and withdrawals</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><i class="fa-solid fa-users"></i><h3 id="total-users">0</h3><p>Total Users</p></div>
+      <div class="stat"><i class="fa-solid fa-list"></i><h3 id="total-submissions">0</h3><p>Total Submissions</p></div>
+      <div class="stat"><i class="fa-solid fa-hourglass-half"></i><h3 id="pending-submissions">0</h3><p>Pending Submissions</p></div>
+      <div class="stat"><i class="fa-solid fa-money-bill-wave"></i><h3 id="pending-withdrawals">0</h3><p>Pending Withdrawals</p></div>
+      <div class="stat"><i class="fa-solid fa-indian-rupee-sign"></i><h3 id="total-earnings">₹0</h3><p>Total Earnings</p></div>
+      <div class="stat"><i class="fa-solid fa-envelope"></i><h3 id="unread-messages">0</h3><p>Unread Messages</p></div>
+    </div>
+
+    <div class="tabs" id="admin-tabs">
+      <div class="tab active" data-tab="tab-users">Users</div>
+      <div class="tab" data-tab="tab-submissions">Submissions</div>
+      <div class="tab" data-tab="tab-withdrawals">Withdrawals</div>
+      <div class="tab" data-tab="tab-messages">Messages</div>
+      <div class="tab" data-tab="tab-promotion-requests">Promotion Requests</div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="tab-users" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h3>User Management</h3>
+          <div class="search-container">
+            <input type="text" id="user-search" class="fc" placeholder="Search users...">
+            <button class="btn" id="btn-refresh-users"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="users-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions Tab -->
+    <div id="tab-submissions" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>Content Submissions</h3>
+          <div class="search-container">
+            <input type="text" id="submission-search" class="fc" placeholder="Search submissions...">
+            <select id="submission-filter" class="fc">
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Type</th>
+                  <th>Link</th>
+                  <th>Status</th>
+                  <th>Earnings</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="submissions-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="submissions-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawals Tab -->
+    <div id="tab-withdrawals" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>Withdrawal Requests</h3>
+          <div class="search-container">
+            <input type="text" id="withdrawal-search" class="fc" placeholder="Search withdrawals...">
+            <select id="withdrawal-filter" class="fc">
+              <option value="all">All Status</option>
+              <option value="requested">Requested</option>
+              <option value="processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Method</th>
+                  <th>Method Details</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Requested</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="withdrawals-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="withdrawals-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Tab -->
+    <div id="tab-messages" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>Contact Messages</h3>
+          <div class="search-container">
+            <input type="text" id="message-search" class="fc" placeholder="Search messages...">
+            <button class="btn" id="btn-mark-all-read"><i class="fas fa-check-double"></i> Mark All Read</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Message</th>
+                  <th>Received</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="messages-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="messages-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotion Requests Tab -->
+    <div id="tab-promotion-requests" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>Brand Promotion Requests</h3>
+          <div class="search-container">
+            <input type="text" id="promotion-search" class="fc" placeholder="Search requests...">
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Person</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Details</th>
+                  <th>Requested</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="promotion-table-body"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="promotion-pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submission Detail Modal -->
+  <div class="modal" id="submission-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Submission Details</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="fg">
+          <label>User ID</label>
+          <input type="text" id="modal-user-id" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>Content Type</label>
+          <input type="text" id="modal-type" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>Content Link</label>
+          <input type="text" id="modal-link" class="fc" readonly>
+          <div style="margin-top:8px">
+            <a href="#" id="modal-link-anchor" target="_blank" class="btn">View Content</a>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Status</label>
+          <select id="modal-status" class="fc">
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Earnings (₹)</label>
+          <input type="number" id="modal-earnings" class="fc" min="0">
+        </div>
+        <button class="btn btn-success" id="btn-save-submission" style="width:100%">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdrawal Detail Modal -->
+  <div class="modal" id="withdrawal-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Withdrawal Details</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="fg">
+          <label>User ID</label>
+          <input type="text" id="modal-withdrawal-userid" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>User Name</label>
+          <input type="text" id="modal-withdrawal-username" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>Method</label>
+          <input type="text" id="modal-withdrawal-method" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>Method Details</label>
+          <div id="modal-withdrawal-method-details" class="method-details"></div>
+        </div>
+        <div class="fg">
+          <label>Amount (₹)</label>
+          <input type="text" id="modal-withdrawal-amount" class="fc" readonly>
+        </div>
+        <div class="fg">
+          <label>Status</label>
+          <select id="modal-withdrawal-status" class="fc">
+            <option value="requested">Requested</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Requested At</label>
+          <input type="text" id="modal-withdrawal-requested" class="fc" readonly>
+        </div>
+        <button class="btn btn-success" id="btn-save-withdrawal" style="width:100%">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+
+  <script>
+    /**************************************************************************
+     * Firebase configuration - replace if you want different project
+     **************************************************************************/
+    const firebaseConfig = {
+      apiKey: "AIzaSyBm4VTr__mag1trF4jPZCgqt7gWwBItD58",
+      authDomain: "exchange-a725e.firebaseapp.com",
+      databaseURL: "https://exchange-a725e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "exchange-a725e",
+      storageBucket: "exchange-a725e.firebasestorage.app",
+      messagingSenderId: "47165517524",
+      appId: "1:47165517524:web:7712aae884de7a498a1541"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Globals
+    let currentUser = null;
+    let currentSubmissionId = null;
+    let currentWithdrawalId = null;
+    let currentSubmissionUserId = null;
+    let currentWithdrawalUserId = null;
+    const itemsPerPage = 10;
+    let currentUsersPage = 1;
+    let currentSubmissionsPage = 1;
+    let currentWithdrawalsPage = 1;
+    let currentMessagesPage = 1;
+    let currentPromotionPage = 1;
+
+    // Helper: safe default
+    function safe(val, def = 'N/A') {
+      return (val === undefined || val === null || val === '') ? def : val;
+    }
+
+    // Show toast/status
+    function showStatus(message, type = 'ok') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status show ${type}`;
+      setTimeout(() => {
+        statusEl.className = 'status';
+      }, 3000);
+    }
+
+    // Password toggle
+    function setupPasswordToggle(toggleId, inputId) {
+      const toggle = document.getElementById(toggleId);
+      const input = document.getElementById(inputId);
+      if (!toggle || !input) return;
+      toggle.addEventListener('click', () => {
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.classList.add('active');
+          toggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        } else {
+          input.type = 'password';
+          toggle.classList.remove('active');
+          toggle.innerHTML = '<i class="fas fa-eye"></i>';
+        }
+      });
+    }
+
+    // Date formatter
+    function formatDate(timestamp) {
+      if (!timestamp) return '-';
+      const date = new Date(Number(timestamp));
+      if (isNaN(date.getTime())) {
+        const isoDate = new Date(timestamp);
+        if (!isNaN(isoDate.getTime())) {
+          return isoDate.toLocaleDateString() + ' ' + isoDate.toLocaleTimeString();
+        }
+        return '-';
+      }
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+
+    // Status badge
+    function getStatusBadge(status) {
+      switch ((status || '').toString().toLowerCase()) {
+        case 'approved':
+        case 'completed':
+          return '<span class="badge badge-success">Approved</span>';
+        case 'pending':
+        case 'requested':
+          return '<span class="badge badge-warning">Pending</span>';
+        case 'rejected':
+          return '<span class="badge badge-danger">Rejected</span>';
+        case 'processing':
+          return '<span class="badge badge-info">Processing</span>';
+        default:
+          return '<span class="badge">Unknown</span>';
+      }
+    }
+
+    // Flexible method details (handles many possible key names)
+    function formatMethodDetails(method, details) {
+      if (!details || typeof details !== 'object') return '<p>No details provided</p>';
+      let html = '';
+      const m = (method || '').toLowerCase().trim();
+
+      // Helper to pick first non-empty value from list of keys
+      function pick(obj, keys) {
+        for (const k of keys) {
+          if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+        }
+        return null;
+      }
+
+      if (m === 'upi' || m.includes('upi')) {
+        const upiName = pick(details, ['name','upiName','upi_name','accountName','account_holder','accountHolder']);
+        const upiId = pick(details, ['upiId','upi','upi_id','vpa']);
+        const phone = pick(details, ['phone','mobile','contact']);
+        html += `<p><strong>UPI Name:</strong> ${safe(upiName)}</p>`;
+        html += `<p><strong>UPI ID:</strong> ${safe(upiId)}</p>`;
+        if (phone) html += `<p><strong>Phone:</strong> ${safe(phone)}</p>`;
+      } else if (m === 'bank' || m.includes('bank')) {
+        const accName = pick(details, ['name','accountName','account_name','accountHolder','account_holder']);
+        const accNumber = pick(details, ['account','accountNumber','account_number','accNo','acc_no']);
+        const ifsc = pick(details, ['ifsc','ifscCode','ifsc_code']);
+        const bankName = pick(details, ['bank','bankName','bank_name']);
+        const phone = pick(details, ['phone','mobile','contact']);
+        if (accName) html += `<p><strong>Account Holder:</strong> ${safe(accName)}</p>`;
+        html += `<p><strong>Account Number:</strong> ${safe(accNumber)}</p>`;
+        if (ifsc) html += `<p><strong>IFSC:</strong> ${safe(ifsc)}</p>`;
+        if (bankName) html += `<p><strong>Bank:</strong> ${safe(bankName)}</p>`;
+        if (phone) html += `<p><strong>Phone:</strong> ${safe(phone)}</p>`;
+      } else if (m === 'paypal' || m.includes('paypal')) {
+        const email = pick(details, ['email','paypalEmail','paypal_email']);
+        html += `<p><strong>Email:</strong> ${safe(email)}</p>`;
+      } else {
+        // generic: show common known keys first, then all keys
+        const commonKeys = ['name','email','phone','mobile','account','accountNumber','ifsc','upi','upiId','bank','details'];
+        for (const key of commonKeys) {
+          if (details[key] !== undefined) {
+            html += `<p><strong>${key}:</strong> ${safe(details[key])}</p>`;
+          }
+        }
+        // also list any other keys
+        for (const key in details) {
+          if (Object.prototype.hasOwnProperty.call(details, key) && !commonKeys.includes(key)) {
+            html += `<p><strong>${key}:</strong> ${safe(details[key])}</p>`;
+          }
+        }
+      }
+
+      return html || '<p>No details provided</p>';
+    }
+
+    /**************************************************************************
+     * Authentication (login / logout)
+     **************************************************************************/
+    document.getElementById('btn-admin-login').addEventListener('click', () => {
+      const email = (document.getElementById('admin-email')?.value || '').trim();
+      const password = (document.getElementById('admin-pass')?.value || '').trim();
+      if (!email || !password) {
+        showStatus('Please enter email and password', 'err');
+        return;
+      }
+      auth.signInWithEmailAndPassword(email, password)
+        .then((cred) => {
+          currentUser = cred.user;
+          if (currentUser && currentUser.email && currentUser.email.toLowerCase() === 'rudrchauhan877@gmail.com') {
+            showStatus('Admin login successful!', 'ok');
+            document.getElementById('admin-login').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            document.getElementById('nav-logout').style.display = 'list-item';
+            loadDashboardData();
+          } else {
+            auth.signOut();
+            showStatus('Access denied. Admin privileges required.', 'err');
+          }
+        })
+        .catch((err) => {
+          showStatus(err.message || 'Login failed', 'err');
+          console.error('Login error:', err);
+        });
+    });
+
+    // Logout
+    document.getElementById('logout').addEventListener('click', (e) => {
+      e.preventDefault();
+      auth.signOut().then(() => {
+        showStatus('Logged out successfully', 'ok');
+        document.getElementById('admin-login').style.display = 'block';
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('nav-logout').style.display = 'none';
+      }).catch(err => {
+        showStatus(err.message || 'Logout failed', 'err');
+      });
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        tab.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        const el = document.getElementById(tabId);
+        if (el) el.classList.add('active');
+
+        // load relevant data
+        if (tabId === 'tab-users') loadUsers();
+        if (tabId === 'tab-submissions') loadSubmissions();
+        if (tabId === 'tab-withdrawals') loadWithdrawals();
+        if (tabId === 'tab-messages') loadMessages();
+        if (tabId === 'tab-promotion-requests') loadPromotionRequests();
+      });
+    });
+
+    // Modals: close buttons
+    document.querySelectorAll('.modal-close').forEach(closeBtn => {
+      closeBtn.addEventListener('click', () => {
+        const modal = closeBtn.closest('.modal');
+        if (modal) modal.classList.remove('show');
+      });
+    });
+    // Close when clicking backdrop
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('show');
+      });
+    });
+
+    /**************************************************************************
+     * Dashboard stats + initial load
+     **************************************************************************/
+    function loadDashboardData() {
+      // Users count
+      database.ref('users').once('value').then(snapshot => {
+        const totalUsers = snapshot ? snapshot.numChildren() : 0;
+        document.getElementById('total-users').textContent = totalUsers;
+      }).catch(err => {
+        console.error('Error loading users count:', err);
+      });
+
+      // Submissions: total & pending
+      database.ref('submissions').once('value').then(snapshot => {
+        let totalSubmissions = 0;
+        let pendingSubmissions = 0;
+        let totalEarnings = 0;
+
+        if (snapshot) {
+          snapshot.forEach(userSnapshot => {
+            if (userSnapshot.hasChildren()) {
+              userSnapshot.forEach(sub => {
+                totalSubmissions++;
+                const submission = sub.val();
+                if ((submission.status || '').toString().toLowerCase() === 'pending') {
+                  pendingSubmissions++;
+                }
+                if (submission.earnings) {
+                  totalEarnings += Number(submission.earnings);
+                }
+              });
+            }
+          });
+        }
+
+        document.getElementById('total-submissions').textContent = totalSubmissions;
+        document.getElementById('pending-submissions').textContent = pendingSubmissions;
+        document.getElementById('total-earnings').textContent = '₹' + totalEarnings.toLocaleString();
+      }).catch(err => { console.error('Error loading submissions:', err); });
+
+      // Withdrawals pending
+      database.ref('withdrawals').once('value').then(snapshot => {
+        let pendingWithdrawals = 0;
+        if (snapshot) {
+          snapshot.forEach(userSnapshot => {
+            if (userSnapshot.hasChildren()) {
+              userSnapshot.forEach(w => {
+                const withdrawal = w.val();
+                if ((withdrawal.status || '').toString().toLowerCase() === 'requested') {
+                  pendingWithdrawals++;
+                }
+              });
+            }
+          });
+        }
+        document.getElementById('pending-withdrawals').textContent = pendingWithdrawals;
+      }).catch(err => { console.error('Error loading withdrawals:', err); });
+
+      // Messages unread
+      database.ref('contactMessages').once('value').then(snapshot => {
+        let unread = 0;
+        if (snapshot) {
+          snapshot.forEach(ms => {
+            const m = ms.val();
+            if (!m.read) unread++;
+          });
+        }
+        document.getElementById('unread-messages').textContent = unread;
+      }).catch(err => { console.error('Error loading messages count:', err); });
+
+      // Load active tab's data (users by default)
+      loadUsers();
+    }
+
+    /**************************************************************************
+     * USERS
+     **************************************************************************/
+    function loadUsers(page = 1) {
+      currentUsersPage = page;
+      const usersTable = document.getElementById('users-table-body');
+      usersTable.innerHTML = '<tr><td colspan="5" style="text-align:center">Loading users...</td></tr>';
+
+      database.ref('users').once('value').then(snapshot => {
+        const users = [];
+        if (snapshot) {
+          snapshot.forEach(userSnapshot => {
+            const u = userSnapshot.val() || {};
+            u.id = userSnapshot.key;
+            users.push(u);
+          });
+        }
+
+        const searchTerm = (document.getElementById('user-search')?.value || '').toLowerCase();
+        const filtered = searchTerm ? users.filter(user =>
+          ((user.name || '').toLowerCase().includes(searchTerm)) ||
+          ((user.email || '').toLowerCase().includes(searchTerm)) ||
+          (user.id && user.id.toLowerCase().includes(searchTerm))
+        ) : users;
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        usersTable.innerHTML = '';
+        if (paginated.length === 0) {
+          usersTable.innerHTML = '<tr><td colspan="5" style="text-align:center">No users found</td></tr>';
+        } else {
+          paginated.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${safe(user.id)}</td>
+              <td>${safe(user.name)}</td>
+              <td>${safe(user.email)}</td>
+              <td>${formatDate(user.createdAt)}</td>
+              <td>
+                <button class="action-btn btn-view" data-id="${safe(user.id, '')}"><i class="fas fa-eye"></i> View</button>
+              </td>
+            `;
+            usersTable.appendChild(row);
+          });
+
+          // View buttons (placeholder)
+          usersTable.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const uid = btn.getAttribute('data-id');
+              showStatus('View user: ' + uid, 'ok');
+            });
+          });
+        }
+
+        // pagination controls
+        const paginationEl = document.getElementById('users-pagination');
+        paginationEl.innerHTML = '';
+        if (totalPages > 1) {
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            if (i === page) btn.classList.add('active');
+            btn.addEventListener('click', () => loadUsers(i));
+            paginationEl.appendChild(btn);
+          }
+        }
+      }).catch(err => {
+        usersTable.innerHTML = '<tr><td colspan="5" style="text-align:center">Error loading users</td></tr>';
+        console.error('Error loading users:', err);
+      });
+    }
+
+    // Refresh users
+    document.getElementById('btn-refresh-users').addEventListener('click', () => {
+      loadUsers(currentUsersPage);
+    });
+
+    // User search
+    document.getElementById('user-search').addEventListener('input', () => {
+      loadUsers(1);
+    });
+
+    /**************************************************************************
+     * SUBMISSIONS
+     **************************************************************************/
+    function loadSubmissions(page = 1) {
+      currentSubmissionsPage = page;
+      const table = document.getElementById('submissions-table-body');
+      table.innerHTML = '<tr><td colspan="7" style="text-align:center">Loading submissions...</td></tr>';
+
+      database.ref('submissions').once('value').then(snapshot => {
+        const submissions = [];
+        if (snapshot) {
+          snapshot.forEach(userSnapshot => {
+            const uid = userSnapshot.key;
+            userSnapshot.forEach(subSnapshot => {
+              const s = subSnapshot.val() || {};
+              s.id = subSnapshot.key;
+              s.userId = uid;
+              submissions.push(s);
+            });
+          });
+        }
+
+        const searchTerm = (document.getElementById('submission-search')?.value || '').toLowerCase();
+        const statusFilter = document.getElementById('submission-filter')?.value || 'all';
+        const filtered = submissions.filter(sub => {
+          const matchSearch = !searchTerm ||
+            ((sub.type || '').toLowerCase().includes(searchTerm)) ||
+            ((sub.link || '').toLowerCase().includes(searchTerm)) ||
+            (sub.userId && sub.userId.toLowerCase().includes(searchTerm));
+          const matchStatus = statusFilter === 'all' || (sub.status || '').toLowerCase() === statusFilter;
+          return matchSearch && matchStatus;
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        table.innerHTML = '';
+        if (paginated.length === 0) {
+          table.innerHTML = '<tr><td colspan="7" style="text-align:center">No submissions found</td></tr>';
+        } else {
+          paginated.forEach(sub => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${safe(sub.userId)}</td>
+              <td>${safe(sub.type)}</td>
+              <td>${safe(sub.link)}</td>
+              <td>${getStatusBadge(sub.status)}</td>
+              <td>₹${safe(sub.earnings, 0)}</td>
+              <td>${formatDate(sub.timestamp)}</td>
+              <td>
+                <button class="action-btn btn-edit" data-id="${safe(sub.id)}" data-uid="${safe(sub.userId)}"><i class="fas fa-edit"></i> Edit</button>
+              </td>
+            `;
+            table.appendChild(row);
+          });
+
+          // Edit buttons
+          table.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const subId = btn.getAttribute('data-id');
+              const userId = btn.getAttribute('data-uid');
+              openSubmissionModal(userId, subId);
+            });
+          });
+        }
+
+        // pagination
+        const paginationEl = document.getElementById('submissions-pagination');
+        paginationEl.innerHTML = '';
+        if (totalPages > 1) {
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            if (i === page) btn.classList.add('active');
+            btn.addEventListener('click', () => loadSubmissions(i));
+            paginationEl.appendChild(btn);
+          }
+        }
+      }).catch(err => {
+        table.innerHTML = '<tr><td colspan="7" style="text-align:center">Error loading submissions</td></tr>';
+        console.error('Error loading submissions:', err);
+      });
+    }
+
+    // Open submission modal
+    function openSubmissionModal(userId, submissionId) {
+      database.ref(`submissions/${userId}/${submissionId}`).once('value').then(snapshot => {
+        const submission = snapshot.val() || {};
+        document.getElementById('modal-user-id').value = userId;
+        document.getElementById('modal-type').value = safe(submission.type);
+        document.getElementById('modal-link').value = safe(submission.link);
+        document.getElementById('modal-link-anchor').href = safe(submission.link, '#');
+        document.getElementById('modal-status').value = safe(submission.status, 'pending');
+        document.getElementById('modal-earnings').value = safe(submission.earnings, 0);
+        currentSubmissionId = submissionId;
+        currentSubmissionUserId = userId;
+        document.getElementById('submission-modal').classList.add('show');
+      }).catch(err => {
+        showStatus('Error loading submission details', 'err');
+        console.error('Error loading submission:', err);
+      });
+    }
+
+    // Save submission changes
+    document.getElementById('btn-save-submission').addEventListener('click', () => {
+      const status = document.getElementById('modal-status').value;
+      const earnings = document.getElementById('modal-earnings').value;
+      if (!currentSubmissionUserId || !currentSubmissionId) {
+        showStatus('Invalid submission', 'err');
+        return;
+      }
+      const updates = {
+        status: status,
+        earnings: Number(earnings) || 0
+      };
+      database.ref(`submissions/${currentSubmissionUserId}/${currentSubmissionId}`).update(updates)
+        .then(() => {
+          showStatus('Submission updated successfully', 'ok');
+          document.getElementById('submission-modal').classList.remove('show');
+          loadSubmissions(currentSubmissionsPage);
+          loadDashboardData(); // refresh stats
+        })
+        .catch(err => {
+          showStatus('Error updating submission', 'err');
+          console.error('Update error:', err);
+        });
+    });
+
+    // Submission search/filter
+    document.getElementById('submission-search').addEventListener('input', () => {
+      loadSubmissions(1);
+    });
+    document.getElementById('submission-filter').addEventListener('change', () => {
+      loadSubmissions(1);
+    });
+
+    /**************************************************************************
+     * WITHDRAWALS
+     **************************************************************************/
+    function loadWithdrawals(page = 1) {
+      currentWithdrawalsPage = page;
+      const table = document.getElementById('withdrawals-table-body');
+      table.innerHTML = '<tr><td colspan="8" style="text-align:center">Loading withdrawals...</td></tr>';
+
+      database.ref('withdrawals').once('value').then(snapshot => {
+        const withdrawals = [];
+        if (snapshot) {
+          snapshot.forEach(userSnapshot => {
+            const uid = userSnapshot.key;
+            userSnapshot.forEach(wdSnapshot => {
+              const w = wdSnapshot.val() || {};
+              w.id = wdSnapshot.key;
+              w.userId = uid;
+              withdrawals.push(w);
+            });
+          });
+        }
+
+        const searchTerm = (document.getElementById('withdrawal-search')?.value || '').toLowerCase();
+        const statusFilter = document.getElementById('withdrawal-filter')?.value || 'all';
+        const filtered = withdrawals.filter(wd => {
+          const matchSearch = !searchTerm ||
+            ((wd.name || '').toLowerCase().includes(searchTerm)) ||
+            ((wd.method || '').toLowerCase().includes(searchTerm)) ||
+            (wd.userId && wd.userId.toLowerCase().includes(searchTerm));
+          const matchStatus = statusFilter === 'all' || (wd.status || '').toLowerCase() === statusFilter;
+          return matchSearch && matchStatus;
+        });
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        table.innerHTML = '';
+        if (paginated.length === 0) {
+          table.innerHTML = '<tr><td colspan="8" style="text-align:center">No withdrawals found</td></tr>';
+        } else {
+          paginated.forEach(wd => {
+            const methodDetailsSafe = wd.methodDetails ? wd.methodDetails : {};
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${safe(wd.userId)}</td>
+              <td>${safe(wd.name)}</td>
+              <td>${safe(wd.method)}</td>
+              <td><button class="action-btn btn-view" data-method="${safe(wd.method)}" data-details='${JSON.stringify(methodDetailsSafe).replace(/'/g, "&apos;").replace(/</g,"&lt;") }'>View Details</button></td>
+              <td>₹${safe(wd.amount, 0)}</td>
+              <td>${getStatusBadge(wd.status)}</td>
+              <td>${formatDate(wd.timestamp)}</td>
+              <td>
+                <button class="action-btn btn-edit" data-id="${safe(wd.id)}" data-uid="${safe(wd.userId)}"><i class="fas fa-edit"></i> Edit</button>
+              </td>
+            `;
+            table.appendChild(row);
+          });
+
+          // View method details buttons
+          table.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const method = btn.getAttribute('data-method') || '';
+              let details = {};
+              try {
+                details = JSON.parse(btn.getAttribute('data-details') || '{}');
+              } catch (e) {
+                details = {};
+              }
+              const html = formatMethodDetails(method, details);
+              // show modal with details
+              // For quickness, reuse alert if modal not desired:
+              const cleanText = html.replace(/<[^>]*>/g, '\n').replace(/\&nbsp;/g,' ').trim();
+              // Show in withdrawal modal instead of alert for better UX
+              showStatus('Showing method details', 'ok');
+              // populate a small temp modal area (we'll use alert fallback)
+              // Try to open a simple modal:
+              alert('Method: ' + method + '\n\n' + cleanText);
+            });
+          });
+
+          // Edit buttons
+          table.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const wdId = btn.getAttribute('data-id');
+              const userId = btn.getAttribute('data-uid');
+              openWithdrawalModal(userId, wdId);
+            });
+          });
+        }
+
+        // pagination
+        const paginationEl = document.getElementById('withdrawals-pagination');
+        paginationEl.innerHTML = '';
+        if (totalPages > 1) {
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            if (i === page) btn.classList.add('active');
+            btn.addEventListener('click', () => loadWithdrawals(i));
+            paginationEl.appendChild(btn);
+          }
+        }
+      }).catch(err => {
+        table.innerHTML = '<tr><td colspan="8" style="text-align:center">Error loading withdrawals</td></tr>';
+        console.error('Error loading withdrawals:', err);
+      });
+    }
+
+    // Open withdrawal modal
+    function openWithdrawalModal(userId, withdrawalId) {
+      database.ref(`withdrawals/${userId}/${withdrawalId}`).once('value').then(snapshot => {
+        const withdrawal = snapshot.val() || {};
+        document.getElementById('modal-withdrawal-userid').value = userId;
+        document.getElementById('modal-withdrawal-username').value = safe(withdrawal.name);
+        document.getElementById('modal-withdrawal-method').value = safe(withdrawal.method);
+        document.getElementById('modal-withdrawal-method-details').innerHTML = formatMethodDetails(withdrawal.method, withdrawal.methodDetails || {});
+        document.getElementById('modal-withdrawal-amount').value = safe(withdrawal.amount);
+        document.getElementById('modal-withdrawal-status').value = safe(withdrawal.status, 'requested');
+        document.getElementById('modal-withdrawal-requested').value = formatDate(withdrawal.timestamp);
+        currentWithdrawalId = withdrawalId;
+        currentWithdrawalUserId = userId;
+        document.getElementById('withdrawal-modal').classList.add('show');
+      }).catch(err => {
+        showStatus('Error loading withdrawal details', 'err');
+        console.error('Error loading withdrawal:', err);
+      });
+    }
+
+    // Save withdrawal changes
+    document.getElementById('btn-save-withdrawal').addEventListener('click', () => {
+      const status = document.getElementById('modal-withdrawal-status').value;
+      if (!currentWithdrawalUserId || !currentWithdrawalId) {
+        showStatus('Invalid withdrawal', 'err');
+        return;
+      }
+      const updates = {
+        status: status
+      };
+      database.ref(`withdrawals/${currentWithdrawalUserId}/${currentWithdrawalId}`).update(updates)
+        .then(() => {
+          showStatus('Withdrawal updated successfully', 'ok');
+          document.getElementById('withdrawal-modal').classList.remove('show');
+          loadWithdrawals(currentWithdrawalsPage);
+          loadDashboardData(); // refresh stats
+        })
+        .catch(err => {
+          showStatus('Error updating withdrawal', 'err');
+          console.error('Update error:', err);
+        });
+    });
+
+    // Withdrawal search/filter
+    document.getElementById('withdrawal-search').addEventListener('input', () => {
+      loadWithdrawals(1);
+    });
+    document.getElementById('withdrawal-filter').addEventListener('change', () => {
+      loadWithdrawals(1);
+    });
+
+    /**************************************************************************
+     * MESSAGES
+     **************************************************************************/
+    function loadMessages(page = 1) {
+      currentMessagesPage = page;
+      const table = document.getElementById('messages-table-body');
+      table.innerHTML = '<tr><td colspan="7" style="text-align:center">Loading messages...</td></tr>';
+
+      database.ref('contactMessages').once('value').then(snapshot => {
+        const messages = [];
+        if (snapshot) {
+          snapshot.forEach(msgSnapshot => {
+            const m = msgSnapshot.val() || {};
+            m.id = msgSnapshot.key;
+            messages.push(m);
+          });
+        }
+
+        const searchTerm = (document.getElementById('message-search')?.value || '').toLowerCase();
+        const filtered = searchTerm ? messages.filter(msg =>
+          ((msg.name || '').toLowerCase().includes(searchTerm)) ||
+          ((msg.company || '').toLowerCase().includes(searchTerm)) ||
+          ((msg.email || '').toLowerCase().includes(searchTerm)) ||
+          ((msg.message || '').toLowerCase().includes(searchTerm))
+        ) : messages;
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        table.innerHTML = '';
+        if (paginated.length === 0) {
+          table.innerHTML = '<tr><td colspan="7" style="text-align:center">No messages found</td></tr>';
+        } else {
+          paginated.forEach(msg => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${safe(msg.name)}</td>
+              <td>${safe(msg.company)}</td>
+              <td>${safe(msg.email)}</td>
+              <td>${safe(msg.message).toString().substring(0, 50)}${msg.message && msg.message.length > 50 ? '...' : ''}</td>
+              <td>${formatDate(msg.timestamp)}</td>
+              <td>${msg.read ? '<span class="badge badge-success">Read</span>' : '<span class="badge badge-warning">Unread</span>'}</td>
+              <td>
+                <button class="action-btn btn-view" data-id="${safe(msg.id)}"><i class="fas fa-eye"></i> View</button>
+                ${!msg.read ? `<button class="action-btn btn-success btn-mark-read" data-id="${safe(msg.id)}"><i class="fas fa-check"></i> Mark Read</button>` : ''}
+              </td>
+            `;
+            table.appendChild(row);
+          });
+
+          // View buttons
+          table.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const msgId = btn.getAttribute('data-id');
+              // fetch and show full message
+              database.ref(`contactMessages/${msgId}`).once('value').then(snap => {
+                const m = snap.val() || {};
+                alert(`From: ${safe(m.name)}\nEmail: ${safe(m.email)}\nCompany: ${safe(m.company)}\n\nMessage:\n${safe(m.message)}`);
+              });
+            });
+          });
+
+          // Mark as read buttons
+          table.querySelectorAll('.btn-mark-read').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const msgId = btn.getAttribute('data-id');
+              database.ref(`contactMessages/${msgId}/read`).set(true)
+                .then(() => {
+                  showStatus('Message marked as read', 'ok');
+                  loadMessages(currentMessagesPage);
+                  loadDashboardData(); // refresh stats
+                })
+                .catch(err => {
+                  showStatus('Error updating message', 'err');
+                  console.error('Update error:', err);
+                });
+            });
+          });
+        }
+
+        // pagination
+        const paginationEl = document.getElementById('messages-pagination');
+        paginationEl.innerHTML = '';
+        if (totalPages > 1) {
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            if (i === page) btn.classList.add('active');
+            btn.addEventListener('click', () => loadMessages(i));
+            paginationEl.appendChild(btn);
+          }
+        }
+      }).catch(err => {
+        table.innerHTML = '<tr><td colspan="7" style="text-align:center">Error loading messages</td></tr>';
+        console.error('Error loading messages:', err);
+      });
+    }
+
+    // Mark all messages as read
+    document.getElementById('btn-mark-all-read').addEventListener('click', () => {
+      database.ref('contactMessages').once('value').then(snapshot => {
+        const updates = {};
+        if (snapshot) {
+          snapshot.forEach(msgSnapshot => {
+            const msg = msgSnapshot.val();
+            if (!msg.read) {
+              updates[`${msgSnapshot.key}/read`] = true;
+            }
+          });
+        }
+        if (Object.keys(updates).length > 0) {
+          database.ref('contactMessages').update(updates)
+            .then(() => {
+              showStatus('All messages marked as read', 'ok');
+              loadMessages(currentMessagesPage);
+              loadDashboardData(); // refresh stats
+            })
+            .catch(err => {
+              showStatus('Error updating messages', 'err');
+              console.error('Update error:', err);
+            });
+        } else {
+          showStatus('No unread messages', 'ok');
+        }
+      }).catch(err => {
+        showStatus('Error loading messages', 'err');
+        console.error('Error loading messages:', err);
+      });
+    });
+
+    // Message search
+    document.getElementById('message-search').addEventListener('input', () => {
+      loadMessages(1);
+    });
+
+    /**************************************************************************
+     * PROMOTION REQUESTS
+     **************************************************************************/
+    function loadPromotionRequests(page = 1) {
+      currentPromotionPage = page;
+      const table = document.getElementById('promotion-table-body');
+      table.innerHTML = '<tr><td colspan="7" style="text-align:center">Loading promotion requests...</td></tr>';
+
+      database.ref('promotionRequests').once('value').then(snapshot => {
+        const requests = [];
+        if (snapshot) {
+          snapshot.forEach(reqSnapshot => {
+            const r = reqSnapshot.val() || {};
+            r.id = reqSnapshot.key;
+            requests.push(r);
+          });
+        }
+
+        const searchTerm = (document.getElementById('promotion-search')?.value || '').toLowerCase();
+        const filtered = searchTerm ? requests.filter(req =>
+          ((req.personName || '').toLowerCase().includes(searchTerm)) ||
+          ((req.companyName || '').toLowerCase().includes(searchTerm)) ||
+          ((req.email || '').toLowerCase().includes(searchTerm)) ||
+          ((req.phone || '').toLowerCase().includes(searchTerm))
+        ) : requests;
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        table.innerHTML = '';
+        if (paginated.length === 0) {
+          table.innerHTML = '<tr><td colspan="7" style="text-align:center">No promotion requests found</td></tr>';
+        } else {
+          paginated.forEach(req => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${safe(req.personName)}</td>
+              <td>${safe(req.companyName)}</td>
+              <td>${safe(req.email)}</td>
+              <td>${safe(req.phone)}</td>
+              <td>${safe(req.details).toString().substring(0,50)}${req.details && req.details.length>50?'...':''}</td>
+              <td>${formatDate(req.timestamp)}</td>
+              <td>
+                <button class="action-btn btn-view" data-id="${safe(req.id)}"><i class="fas fa-eye"></i> View</button>
+              </td>
+            `;
+            table.appendChild(row);
+          });
+
+          // View buttons
+          table.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const reqId = btn.getAttribute('data-id');
+              database.ref(`promotionRequests/${reqId}`).once('value').then(snap => {
+                const r = snap.val() || {};
+                alert(`Person: ${safe(r.personName)}\nCompany: ${safe(r.companyName)}\nEmail: ${safe(r.email)}\nPhone: ${safe(r.phone)}\n\nDetails:\n${safe(r.details)}`);
+              });
+            });
+          });
+        }
+
+        // pagination
+        const paginationEl = document.getElementById('promotion-pagination');
+        paginationEl.innerHTML = '';
+        if (totalPages > 1) {
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            if (i === page) btn.classList.add('active');
+            btn.addEventListener('click', () => loadPromotionRequests(i));
+            paginationEl.appendChild(btn);
+          }
+        }
+      }).catch(err => {
+        table.innerHTML = '<tr><td colspan="7" style="text-align:center">Error loading promotion requests</td></tr>';
+        console.error('Error loading promotion requests:', err);
+      });
+    }
+
+    // Promotion search
+    document.getElementById('promotion-search').addEventListener('input', () => {
+      loadPromotionRequests(1);
+    });
+
+    /**************************************************************************
+     * INITIALIZATION
+     **************************************************************************/
+    // Setup password toggle
+    setupPasswordToggle('admin-pass-toggle', 'admin-pass');
+
+    // Check if already logged in
+    auth.onAuthStateChanged(user => {
+      if (user && user.email && user.email.toLowerCase() === 'rudrchauhan877@gmail.com') {
+        currentUser = user;
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        document.getElementById('nav-logout').style.display = 'list-item';
+        loadDashboardData();
+      } else {
+        document.getElementById('admin-login').style.display = 'block';
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('nav-logout').style.display = 'none';
+      }
+    });
+
+    // Small UX: close modals on Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+  </script>
+</body>
+</html>
