@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Instapromo Exchange — Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <style>
+    body{font-family:Inter,system-ui,Arial,sans-serif;background:#f6f8ff;color:#111;margin:0}
+    header{background:linear-gradient(135deg,#4361ee,#3a0ca3);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+    header h1{font-size:1.1rem;margin:0}
+    .container{max-width:1400px;margin:20px auto;padding:0 16px}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+    .stat-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 16px rgba(0,0,0,.08);text-align:center}
+    .stat-card h2{margin:0;font-size:2rem;color:#3a0ca3}
+    .stat-card p{margin:4px 0 0;color:#555}
+    .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:18px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{padding:8px 12px;background:#f3f4f6;border-radius:8px;cursor:pointer;font-weight:700}
+    .tab.active{background:#fff;border:1px solid #e5e7eb;color:#4361ee}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #edf0f6;text-align:left}
+    th{background:#fbfbfd;font-weight:800}
+    .badge{padding:4px 8px;border-radius:8px;font-weight:800;font-size:12px}
+    .badge-success{background:#d1fae5;color:#065f46}
+    .badge-warning{background:#fef3c7;color:#92400e}
+    .badge-danger{background:#fee2e2;color:#991b1b}
+    .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+    .btn-primary{background:#4361ee;color:#fff}
+    .btn-secondary{background:#10b981;color:#fff}
+    .btn-danger{background:#ef4444;color:#fff}
+    .fc{padding:10px;border:1px solid #e5e7eb;border-radius:10px;width:100%}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .modal-content{background:#fff;border-radius:14px;padding:18px;width:92%;max-width:640px;max-height:86vh;overflow:auto}
+    .fg{margin-bottom:12px}
+    .fg label{display:block;font-weight:800;margin-bottom:6px}
+    .method-details{background:#f9fafb;padding:10px;border-radius:8px}
+    #login-container{max-width:400px;margin:60px auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.1)}
+    #login-container h2{margin-top:0;text-align:center}
+  </style>
+</head>
+<body>
+  <!-- LOGIN UI -->
+  <div id="login-container">
+    <h2>Admin Login</h2>
+    <div class="fg"><label>Email</label><input type="email" id="login-email" class="fc" placeholder="Admin Email"></div>
+    <div class="fg"><label>Password</label><input type="password" id="login-password" class="fc" placeholder="Password"></div>
+    <button id="btn-login" class="btn btn-primary" style="width:100%">Login</button>
+    <p id="login-error" style="color:red;text-align:center;margin-top:10px"></p>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-panel" style="display:none">
+    <header>
+      <h1><i class="fa-solid fa-exchange-alt"></i> Instapromo Exchange Admin</h1>
+      <a id="logout" href="#" style="color:#fff;font-weight:700">Logout</a>
+    </header>
+
+    <div class="container">
+      <!-- DASHBOARD STATS -->
+      <div class="stats">
+        <div class="stat-card"><h2 id="stat-users">0</h2><p>Total Users</p></div>
+        <div class="stat-card"><h2 id="stat-submissions">0</h2><p>Total Submissions</p></div>
+        <div class="stat-card"><h2 id="stat-earnings">₹0</h2><p>Total Earnings</p></div>
+        <div class="stat-card"><h2 id="stat-withdrawals">0</h2><p>Pending Withdrawals</p></div>
+      </div>
+
+      <div class="card">
+        <div class="tabs" id="admin-tabs">
+          <div class="tab active" data-tab="tab-users">Users</div>
+          <div class="tab" data-tab="tab-submissions">Submissions</div>
+          <div class="tab" data-tab="tab-withdrawals">Withdrawals</div>
+          <div class="tab" data-tab="tab-messages">Messages</div>
+          <div class="tab" data-tab="tab-promotions">Promotion Requests</div>
+        </div>
+
+        <!-- USERS -->
+        <div id="tab-users" class="tab-content active">
+          <h3>Users</h3>
+          <table><thead><tr><th>ID</th><th>Name</th><th>Email</th></tr></thead><tbody id="users-table"></tbody></table>
+        </div>
+
+        <!-- SUBMISSIONS -->
+        <div id="tab-submissions" class="tab-content" style="display:none">
+          <h3>Submissions</h3>
+          <table><thead><tr><th>User</th><th>Type</th><th>Link</th><th>Status</th></tr></thead><tbody id="submissions-table"></tbody></table>
+        </div>
+
+        <!-- WITHDRAWALS -->
+        <div id="tab-withdrawals" class="tab-content" style="display:none">
+          <h3>Withdrawals</h3>
+          <table><thead><tr><th>User</th><th>Method</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="withdrawals-table"></tbody></table>
+        </div>
+
+        <!-- MESSAGES -->
+        <div id="tab-messages" class="tab-content" style="display:none">
+          <h3>Messages</h3>
+          <table><thead><tr><th>Name</th><th>Email</th><th>Message</th></tr></thead><tbody id="messages-table"></tbody></table>
+        </div>
+
+        <!-- PROMOTIONS -->
+        <div id="tab-promotions" class="tab-content" style="display:none">
+          <h3>Promotion Requests</h3>
+          <table><thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Details</th></tr></thead><tbody id="promotions-table"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WITHDRAWAL MODAL -->
+  <div class="modal" id="withdrawal-modal"><div class="modal-content">
+    <h3>Withdrawal Details</h3>
+    <div class="fg"><label>User ID</label><input id="modal-userid" class="fc" readonly></div>
+    <div class="fg"><label>Name</label><input id="modal-username" class="fc" readonly></div>
+    <div class="fg"><label>Method</label><input id="modal-method" class="fc" readonly></div>
+    <div class="fg"><label>Method Details</label><div id="modal-method-details" class="method-details"></div></div>
+    <div class="fg"><label>Amount</label><input id="modal-amount" class="fc" readonly></div>
+    <div class="fg"><label>Status</label>
+      <select id="modal-status" class="fc"><option value="requested">Requested</option><option value="completed">Completed</option><option value="rejected">Rejected</option></select>
+    </div>
+    <button id="btn-save-withdrawal" class="btn btn-primary" style="width:100%">Save</button>
+  </div></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig={apiKey:"AIzaSyBm4VTr__mag1trF4jPZCgqt7gWwBItD58",authDomain:"exchange-a725e.firebaseapp.com",databaseURL:"https://exchange-a725e-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"exchange-a725e",storageBucket:"exchange-a725e.firebasestorage.app",messagingSenderId:"47165517524",appId:"1:47165517524:web:7712aae884de7a498a1541"};
+    firebase.initializeApp(firebaseConfig);
+    const auth=firebase.auth(); const db=firebase.database();
+
+    function safe(v,d="N/A"){return v? v : d;}
+    function formatMethodDetails(method,details){let html="";method=(method||"").toLowerCase();if(method==="upi"){html+=`<p><b>UPI Name:</b> ${safe(details.name)}</p><p><b>UPI ID:</b> ${safe(details.upiid||details.upi)}</p>`;}else if(method==="bank"){html+=`<p><b>Account:</b> ${safe(details.account)}</p><p><b>IFSC:</b> ${safe(details.ifsc)}</p><p><b>Phone:</b> ${safe(details.phone)}</p>`;}return html||"<p>No details</p>";}
+
+    // Login
+    document.getElementById("btn-login").addEventListener("click",()=>{auth.signInWithEmailAndPassword(document.getElementById("login-email").value,document.getElementById("login-password").value).catch(e=>{document.getElementById("login-error").textContent=e.message;});});
+    auth.onAuthStateChanged(user=>{if(user){document.getElementById("login-container").style.display="none";document.getElementById("admin-panel").style.display="block";loadAll();}else{document.getElementById("login-container").style.display="block";document.getElementById("admin-panel").style.display="none";}});
+    document.getElementById("logout").addEventListener("click",()=>auth.signOut());
+
+    // Loaders
+    function loadAll(){loadUsers();loadSubmissions();loadWithdrawals();loadMessages();loadPromotions();updateStats();}
+    function loadUsers(){db.ref("users").once("value").then(s=>{const tb=document.getElementById("users-table");tb.innerHTML="";s.forEach(u=>{const v=u.val();tb.innerHTML+=`<tr><td>${u.key}</td><td>${safe(v.name)}</td><td>${safe(v.email)}</td></tr>`;});});}
+    function loadSubmissions(){db.ref("submissions").once("value").then(s=>{const tb=document.getElementById("submissions-table");tb.innerHTML="";s.forEach(uid=>{uid.forEach(sub=>{const v=sub.val();tb.innerHTML+=`<tr><td>${uid.key}</td><td>${safe(v.type)}</td><td>${safe(v.link)}</td><td>${safe(v.status)}</td></tr>`;});});});}
+    function loadWithdrawals(){db.ref("withdrawals").once("value").then(s=>{const tb=document.getElementById("withdrawals-table");tb.innerHTML="";s.forEach(uid=>{uid.forEach(w=>{const v=w.val();tb.innerHTML+=`<tr><td>${uid.key}</td><td>${safe(v.method)}</td><td>₹${safe(v.amount)}</td><td>${safe(v.status)}</td><td><button class="btn btn-secondary" onclick='openWithdrawalModal(${JSON.stringify({...v,id:w.key,userId:uid.key})})'>View</button></td></tr>`;});});});}
+    function loadMessages(){db.ref("contactMessages").once("value").then(s=>{const tb=document.getElementById("messages-table");tb.innerHTML="";s.forEach(m=>{const v=m.val();tb.innerHTML+=`<tr><td>${safe(v.name)}</td><td>${safe(v.email)}</td><td>${safe(v.message)}</td></tr>`;});});}
+    function loadPromotions(){db.ref("promotionRequests").once("value").then(s=>{const tb=document.getElementById("promotions-table");tb.innerHTML="";s.forEach(r=>{const v=r.val();tb.innerHTML+=`<tr><td>${safe(v.personName)}</td><td>${safe(v.companyName)}</td><td>${safe(v.email)}</td><td>${safe(v.phone)}</td><td>${safe(v.details)}</td></tr>`;});});}
+
+    // Stats
+    function updateStats(){
+      db.ref("users").once("value").then(s=>{document.getElementById("stat-users").textContent=s.numChildren();});
+      db.ref("submissions").once("value").then(s=>{let count=0,earn=0;s.forEach(uid=>{uid.forEach(sub=>{count++;earn+=(sub.val().earnings||0);});});document.getElementById("stat-submissions").textContent=count;document.getElementById("stat-earnings").textContent="₹"+earn;});
+      db.ref("withdrawals").once("value").then(s=>{let pending=0;s.forEach(uid=>{uid.forEach(w=>{if((w.val().status||"").toLowerCase()==="requested")pending++;});});document.getElementById("stat-withdrawals").textContent=pending;});
+    }
+
+    // Modal
+    function openWithdrawalModal(w){document.getElementById("modal-userid").value=w.userId;document.getElementById("modal-username").value=safe(w.name);document.getElementById("modal-method").value=safe(w.method);document.getElementById("modal-method-details").innerHTML=formatMethodDetails(w.method,w);document.getElementById("modal-amount").value=safe(w.amount);document.getElementById("modal-status").value=safe(w.status);document.getElementById("withdrawal-modal").classList.add("show");}
+    document.getElementById("btn-save-withdrawal").addEventListener("click",()=>{document.getElementById("withdrawal-modal").classList.remove("show");});
+    document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show");}));
+    document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");document.querySelectorAll(".tab-content").forEach(tc=>tc.style.display="none");document.getElementById(t.dataset.tab).style.display="block";}));
+  </script>
+</body>
+</html>
