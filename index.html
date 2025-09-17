@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f9; }
+    header { background: #2c3e50; color: #fff; padding: 15px; text-align: center; font-size: 20px; }
+    nav { background: #34495e; padding: 10px; display: flex; gap: 15px; flex-wrap: wrap; }
+    nav button { background: #2ecc71; border: none; color: #fff; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
+    table th, table td { padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
+    table th { background: #2c3e50; color: #fff; }
+    .status { padding: 4px 8px; border-radius: 5px; font-size: 12px; }
+    .pending { background: orange; color: #fff; }
+    .approved { background: green; color: #fff; }
+    .rejected { background: red; color: #fff; }
+    .paid { background: blue; color: #fff; }
+    .actions button { margin: 2px; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; }
+    .approve { background: green; color: #fff; }
+    .reject { background: red; color: #fff; }
+    .mark { background: blue; color: #fff; }
+    .delete { background: darkred; color: #fff; }
+    a { color: #2980b9; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>🔥 Admin Panel</header>
+  <nav>
+    <button onclick="showSection('users')">Users</button>
+    <button onclick="showSection('submissions')">Submissions</button>
+    <button onclick="showSection('withdrawals')">Withdrawals</button>
+    <button onclick="showSection('brands')">Brand Requests</button>
+    <button onclick="showSection('messages')">Messages</button>
+  </nav>
+
+  <!-- Users -->
+  <section id="users" class="active">
+    <h2>Users</h2>
+    <table>
+      <thead>
+        <tr><th>User ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Followers</th><th>Total Earnings</th><th>Available Balance</th></tr>
+      </thead>
+      <tbody id="usersTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Submissions -->
+  <section id="submissions">
+    <h2>Submissions</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>User ID</th><th>Type</th><th>Link</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="submissionsTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Withdrawals -->
+  <section id="withdrawals">
+    <h2>Withdrawals</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Method</th><th>Details</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="withdrawalsTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Brand Promotion Requests -->
+  <section id="brands">
+    <h2>Brand Promotion Requests</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Followers</th><th>Status</th></tr>
+      </thead>
+      <tbody id="brandsTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Contact Messages -->
+  <section id="messages">
+    <h2>Contact Messages</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Company</th><th>Message</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="messagesTable"></tbody>
+    </table>
+  </section>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // 🔥 Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBm4VTr__mag1trF4jPZCgqt7gWwBItD58",
+      authDomain: "exchange-a725e.firebaseapp.com",
+      databaseURL: "https://exchange-a725e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "exchange-a725e",
+      storageBucket: "exchange-a725e.firebasestorage.app",
+      messagingSenderId: "47165517524",
+      appId: "1:47165517524:web:7712aae884de7a498a1541"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Navigation
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // Load Users
+    onValue(ref(db, "users"), snapshot => {
+      const table = document.getElementById("usersTable");
+      table.innerHTML = "";
+      snapshot.forEach(child => {
+        const u = child.val();
+        table.innerHTML += `
+          <tr>
+            <td>${child.key}</td>
+            <td>${u.fullName || "-"}</td>
+            <td>${u.email || "-"}</td>
+            <td>${u.phone || "-"}</td>
+            <td>${u.followers || 0}</td>
+            <td>${u.totalEarnings || 0}</td>
+            <td>${u.availableBalance || 0}</td>
+          </tr>`;
+      });
+    });
+
+    // Load Submissions
+    onValue(ref(db, "submissions"), snapshot => {
+      const table = document.getElementById("submissionsTable");
+      table.innerHTML = "";
+      snapshot.forEach(child => {
+        const s = child.val();
+        table.innerHTML += `
+          <tr>
+            <td>${child.key}</td>
+            <td>${s.userId}</td>
+            <td>${s.type}</td>
+            <td><a href="${s.link}" target="_blank">View</a></td>
+            <td><span class="status ${s.status}">${s.status}</span></td>
+            <td class="actions">
+              <button class="approve" onclick="updateStatus('submissions','${child.key}','approved')">Approve</button>
+              <button class="reject" onclick="updateStatus('submissions','${child.key}','rejected')">Reject</button>
+            </td>
+          </tr>`;
+      });
+    });
+
+    // Load Withdrawals
+    onValue(ref(db, "withdrawals"), snapshot => {
+      const table = document.getElementById("withdrawalsTable");
+      table.innerHTML = "";
+      snapshot.forEach(child => {
+        const w = child.val();
+        // Get user name from users table if exists
+        onValue(ref(db, `users/${w.userId}`), userSnap => {
+          const user = userSnap.val() || {};
+          table.innerHTML += `
+            <tr>
+              <td>${child.key}</td>
+              <td>${user.fullName || w.userId}</td>
+              <td>${w.method}</td>
+              <td>
+                ${w.method === 'UPI' ? `UPI Name: ${w.upiName || "-"}<br>UPI ID: ${w.upiId || "-"}` :
+                `Bank: ${w.bankName || "-"}<br>Account: ${w.accountNumber || "-"}<br>IFSC: ${w.ifsc || "-"}<br>Phone: ${w.phone || "-"}`}
+              </td>
+              <td>${w.amount}</td>
+              <td><span class="status ${w.status}">${w.status}</span></td>
+              <td class="actions">
+                <button class="approve" onclick="updateStatus('withdrawals','${child.key}','approved')">Approve</button>
+                <button class="reject" onclick="updateStatus('withdrawals','${child.key}','rejected')">Reject</button>
+                <button class="mark" onclick="updateStatus('withdrawals','${child.key}','paid')">Mark Paid</button>
+              </td>
+            </tr>`;
+        }, { onlyOnce: true });
+      });
+    });
+
+    // Load Brand Promotion Requests
+    onValue(ref(db, "brandPromotionRequests"), snapshot => {
+      const table = document.getElementById("brandsTable");
+      table.innerHTML = "";
+      snapshot.forEach(child => {
+        const b = child.val();
+        table.innerHTML += `
+          <tr>
+            <td>${child.key}</td>
+            <td>${b.name}</td>
+            <td>${b.email}</td>
+            <td>${b.followers || "-"}</td>
+            <td><span class="status ${b.status || 'pending'}">${b.status || "pending"}</span></td>
+          </tr>`;
+      });
+    });
+
+    // Load Messages
+    onValue(ref(db, "contactMessages"), snapshot => {
+      const table = document.getElementById("messagesTable");
+      table.innerHTML = "";
+      snapshot.forEach(child => {
+        const m = child.val();
+        table.innerHTML += `
+          <tr>
+            <td>${child.key}</td>
+            <td>${m.name}</td>
+            <td>${m.email}</td>
+            <td>${m.company || "-"}</td>
+            <td>${m.message}</td>
+            <td><span class="status ${m.read ? 'approved' : 'pending'}">${m.read ? "Read" : "Unread"}</span></td>
+            <td class="actions">
+              <button class="mark" onclick="updateStatus('contactMessages','${child.key}','read',true)">Mark Read</button>
+              <button class="delete" onclick="deleteItem('contactMessages','${child.key}')">Delete</button>
+            </td>
+          </tr>`;
+      });
+    });
+
+    // Update status function
+    window.updateStatus = function(path, id, status, isMessage = false) {
+      const updates = {};
+      if (isMessage) {
+        updates[`/${path}/${id}/read`] = true;
+      } else {
+        updates[`/${path}/${id}/status`] = status;
+      }
+      update(ref(db), updates).catch(err => console.error(err));
+    };
+
+    // Delete item
+    window.deleteItem = function(path, id) {
+      remove(ref(db, `${path}/${id}`)).catch(err => console.error(err));
+    };
+  </script>
+</body>
+</html>
